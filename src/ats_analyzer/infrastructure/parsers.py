@@ -19,14 +19,13 @@ from docx import Document
 from ats_analyzer.config import MAX_RESUME_PAGES, MAX_UPLOAD_BYTES
 from ats_analyzer.domain.exceptions import ParserError, UploadError
 from ats_analyzer.domain.models import ParsedResume
-from ats_analyzer.domain.scoring_rules import SECTION_HEADERS, SKILL_ALIASES
+from ats_analyzer.domain.scoring_rules import SECTION_HEADERS, detect_skill_terms
 
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _PHONE_RE = re.compile(r"\+?\d[\d()\s.-]{7,}\d")
 _LINK_RE = re.compile(r"(?:https?://|www\.)[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]+")
 
 _HEADING_RE = re.compile(r"^[#*_\-\s]{0,6}(?P<name>[A-Za-z][A-Za-z0-9 &/+-]{0,48})[#*_\-\s:]{0,6}$")
-_WORD_BOUNDARY_SKILL_RE = re.compile(r"[^a-z0-9+#./\- ]+")
 
 
 def parse_resume(filename: str, data: bytes) -> ParsedResume:
@@ -154,16 +153,7 @@ def _find_links(text: str) -> list[str]:
 
 
 def _detect_skills(text: str) -> list[str]:
-    haystack = _WORD_BOUNDARY_SKILL_RE.sub(" ", text.lower())
-    haystack = re.sub(r"\s+", " ", haystack)
-    matched: list[str] = []
-    for display, aliases in sorted(SKILL_ALIASES.items()):
-        for alias in (display.lower(), *aliases):
-            pattern = r"(?<!\w)" + re.escape(alias) + r"(?!\w)"
-            if re.search(pattern, haystack):
-                matched.append(display)
-                break
-    return matched
+    return detect_skill_terms(text)
 
 
 def _split_sections(text: str) -> dict[str, str]:

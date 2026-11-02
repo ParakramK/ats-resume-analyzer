@@ -61,6 +61,11 @@ def sample_resume_text() -> str:
     return SAMPLE_RESUME_TEXT
 
 
+@pytest.fixture()
+def sample_jd_text() -> str:
+    return SAMPLE_JD_TEXT
+
+
 SAMPLE_RESUME_TEXT = """Jane Doe
 jane.doe@example.com | +1 555 010 1234 | linkedin.com/in/janedoe
 

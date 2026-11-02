@@ -7,6 +7,8 @@ implements the math; this module is its single source of truth for rules.
 
 from __future__ import annotations
 
+import re
+
 METHODOLOGY_LABEL = "Weighted heuristic model v1"
 
 # Initial heuristic weights (percent). Configurable by editing this mapping.
@@ -61,7 +63,10 @@ STRUCTURE_CHECKS: tuple[str, ...] = (
 # if both spellings appear (results are deduplicated by display name).
 
 SKILL_ALIASES: dict[str, tuple[str, ...]] = {
-    "Python": ("py", "python3",),
+    "Python": (
+        "py",
+        "python3",
+    ),
     "JavaScript": ("js", "es6", "ecmascript", "javascript"),
     "TypeScript": ("ts",),
     "Java": ("java",),
@@ -144,26 +149,131 @@ CANONICAL_SECTIONS: tuple[str, ...] = ("experience", "education", "skills")
 
 ACTION_VERBS: frozenset[str] = frozenset(
     {
-        "led", "built", "designed", "implemented", "improved", "reduced", "increased",
-        "launched", "migrated", "automated", "delivered", "owned", "architected",
-        "optimized", "created", "developed", "drove", "scaled", "refactored",
-        "introduced", "mentored", "directed", "coordinated", "established",
-        "spearheaded", "negotiated", "analyzed", "shipped", "presented", "streamlined",
+        "led",
+        "built",
+        "designed",
+        "implemented",
+        "improved",
+        "reduced",
+        "increased",
+        "launched",
+        "migrated",
+        "automated",
+        "delivered",
+        "owned",
+        "architected",
+        "optimized",
+        "created",
+        "developed",
+        "drove",
+        "scaled",
+        "refactored",
+        "introduced",
+        "mentored",
+        "directed",
+        "coordinated",
+        "established",
+        "spearheaded",
+        "negotiated",
+        "analyzed",
+        "shipped",
+        "presented",
+        "streamlined",
     }
 )
 
 # English stopwords used when deriving fallback keywords from a job description.
 STOPWORDS: frozenset[str] = frozenset(
     {
-        "a", "an", "and", "any", "are", "as", "at", "be", "been", "but", "by", "can",
-        "could", "for", "from", "had", "has", "have", "how", "in", "into", "is", "it",
-        "its", "may", "must", "new", "not", "of", "on", "or", "our", "per", "plus",
-        "should", "so", "such", "than", "that", "the", "their", "them", "then",
-        "there", "these", "they", "this", "to", "up", "us", "was", "we", "were",
-        "will", "with", "would", "you", "your", "who", "what", "when", "where", "why",
-        "all", "also", "more", "most", "other", "some", "work", "working", "works",
-        "must-have", "nice", "years", "year", "experience", "role", "team", "teams",
-        "strong", "able", "etc", "using", "use", "within", "about", "across", "while",
+        "a",
+        "an",
+        "and",
+        "any",
+        "are",
+        "as",
+        "at",
+        "be",
+        "been",
+        "but",
+        "by",
+        "can",
+        "could",
+        "for",
+        "from",
+        "had",
+        "has",
+        "have",
+        "how",
+        "in",
+        "into",
+        "is",
+        "it",
+        "its",
+        "may",
+        "must",
+        "new",
+        "not",
+        "of",
+        "on",
+        "or",
+        "our",
+        "per",
+        "plus",
+        "should",
+        "so",
+        "such",
+        "than",
+        "that",
+        "the",
+        "their",
+        "them",
+        "then",
+        "there",
+        "these",
+        "they",
+        "this",
+        "to",
+        "up",
+        "us",
+        "was",
+        "we",
+        "were",
+        "will",
+        "with",
+        "would",
+        "you",
+        "your",
+        "who",
+        "what",
+        "when",
+        "where",
+        "why",
+        "all",
+        "also",
+        "more",
+        "most",
+        "other",
+        "some",
+        "work",
+        "working",
+        "works",
+        "must-have",
+        "nice",
+        "years",
+        "year",
+        "experience",
+        "role",
+        "team",
+        "teams",
+        "strong",
+        "able",
+        "etc",
+        "using",
+        "use",
+        "within",
+        "about",
+        "across",
+        "while",
     }
 )
 
@@ -180,3 +290,26 @@ DEGREE_TERMS: tuple[tuple[str, str], ...] = (
 
 MAX_SKILL_TERM_LENGTH = 40  # sanity cap for extracted requirement terms
 MAX_EXPERIENCE_YEARS = 45  # ignore absurd "35+ years" parser artifacts beyond this
+
+# --- Shared skill-term detection -------------------------------------------
+# Used by both document parsers and job-description extraction so matching is
+# alias-aware, word-bounded and canonicalized in exactly one place.
+
+_NON_WORD_RE = re.compile(r"[^a-z0-9+#./\- ]+")
+
+
+def detect_skill_terms(text: str) -> list[str]:
+    """Return canonical lexicon skill names present in ``text``.
+
+    Aliases map to display names ("k8s" -> "Kubernetes"); matching uses word
+    boundaries ("spy" never matches "py"); each display name appears at most
+    once, so "JS" and "JavaScript" both in the text count as one skill.
+    """
+    haystack = re.sub(r"\s+", " ", _NON_WORD_RE.sub(" ", text.lower()))
+    matched: list[str] = []
+    for display in sorted(SKILL_ALIASES):
+        for term in (display.lower(), *SKILL_ALIASES[display]):
+            if re.search(r"(?<!\w)" + re.escape(term) + r"(?!\w)", haystack):
+                matched.append(display)
+                break
+    return matched
