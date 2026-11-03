@@ -70,24 +70,31 @@ SAMPLE_RESUME_TEXT = """Jane Doe
 jane.doe@example.com | +1 555 010 1234 | linkedin.com/in/janedoe
 
 SUMMARY
-Backend engineer with 6 years of experience building Python services and
-data pipelines. Reduced deploy cycle by 40% and cut API costs by $120k/year.
+Backend engineer with 6 years of experience building Python services,
+data pipelines, and REST APIs for high-volume commerce platforms.
+Comfortable mentoring engineers and leading incident reviews across teams.
 
 EXPERIENCE
 Senior Software Engineer, Dataworks — 2021-2026
 - Built 12 Python fastapi read replicas; cut p99 latency 45% via query tuning.
 - Migrated legacy ETL jobs to Spark and dbt, saving $120k per year.
 - Mentored 4 engineers; led Kubernetes and Docker adoption across 3 teams.
+- Automated CI/CD pipelines with GitHub Actions; deploys 10x faster than before.
 
 Software Engineer, Bitsmith — 2019-2021
-- Implementing REST APIs for invoicing with Python and PostgreSQL.
-- Automated CI/CD pipelines with GitHub Actions; deploys went weekly to daily.
+- Implemented REST APIs for invoicing; cut dispute cycle from 9 to 2 days.
+- Automated CI/CD pipelines with GitHub Actions; cut release time from 2 weeks to 1 day.
+- Introduced PostgreSQL partitioning that cut invoicing batch time by 55%.
+
+PROJECTS
+- Open-sourced a PostgreSQL planner-hints library (900 stars, 5 releases).
+- Built a WhatsApp expense bot in Python and Flask used by 40 people, 3k messages a month.
 
 EDUCATION
 B.S. Computer Science, State University, 2019
 
 SKILLS
-Python, PostgreSQL, Docker, Kubernetes, AWS, Terraform, Git, CI/CD
+Python, PostgreSQL, Docker, Kubernetes, AWS, Terraform, Git, CI/CD, Spark
 
 CERTIFICATIONS
 AWS Certified Solutions Architect

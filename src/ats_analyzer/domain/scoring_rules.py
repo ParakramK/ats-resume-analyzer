@@ -54,7 +54,7 @@ STRUCTURE_CHECKS: tuple[str, ...] = (
     "Professional summary or profile section",
     "Core sections present (experience, education, skills)",
     "Action-driven, quantified bullet points",
-    "Healthy resume length (200-1,500 words)",
+    "Healthy resume length (150-1,800 words)",
 )
 
 # --- Skill matching -------------------------------------------------------

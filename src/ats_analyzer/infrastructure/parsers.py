@@ -139,10 +139,23 @@ def _find_emails(text: str) -> list[str]:
 def _find_phones(text: str) -> list[str]:
     found: dict[str, None] = {}
     for match in _PHONE_RE.findall(text):
+        if _looks_like_date_range(match):
+            continue
         digits = re.sub(r"\D", "", match)
         if 8 <= len(digits) <= 15:
             found.setdefault(match.strip(), None)
     return list(found)
+
+
+def _looks_like_date_range(candidate: str) -> bool:
+    """Reject "2021-2026"-style matches: 8 digits, every group a plausible year."""
+    groups = re.findall(r"\d+", candidate)
+    if len(groups) < 2:
+        return False
+    return all(
+        len(group) == 4 and "19" <= group[:2] <= "20" and "00" <= group[2:] <= "99"
+        for group in groups
+    )
 
 
 def _find_links(text: str) -> list[str]:
