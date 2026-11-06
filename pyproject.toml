@@ -30,6 +30,8 @@ select = ["E", "F", "I", "UP", "B", "SIM", "C4", "S"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]                                # asserts are the point of tests
+"app.py" = ["S101"]                                  # UI state-narrowing asserts only
+"src/ats_analyzer/presentation/**" = ["S101"]        # UI state-narrowing asserts only
 "src/ats_analyzer/infrastructure/http_client.py" = ["S311"]  # jitter only, non-crypto
 
 [tool.mypy]
@@ -51,6 +53,10 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    # PyMuPDF (libmupdf SWIG bindings) emits this on import; harmless, out of our control.
+    "ignore:builtin type.*has no __module__ attribute:DeprecationWarning",
+]
 
 [tool.coverage.run]
 source = ["src/ats_analyzer"]

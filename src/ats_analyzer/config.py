@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 
 APP_NAME = "ATS Resume Analyzer"
+LOGO_EMOJI = "📄"
 
 # --- Upload and document limits -------------------------------------------
 

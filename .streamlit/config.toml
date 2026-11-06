@@ -1,0 +1,10 @@
+[theme]
+base = "light"
+primaryColor = "#0F62FE"
+backgroundColor = "#FAFAFA"
+secondaryBackgroundColor = "#EFF3F6"
+textColor = "#161616"
+
+[browser]
+# Privacy: no usage statistics are collected or sent anywhere.
+gatherUsageStats = false
