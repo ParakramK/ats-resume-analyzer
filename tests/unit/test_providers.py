@@ -101,6 +101,22 @@ def test_compatible_provider_local_http_without_key() -> None:
         client.close()
 
 
+def test_compatible_full_endpoint_paste_is_not_doubled() -> None:
+    provider, client, captured = _multipart(
+        "compatible",
+        COMPATIBLE_BODY.encode(),
+        "https://api.groq.com/openai/v1/chat/completions",
+        "gk-9",
+    )
+    try:
+        provider.generate("S", "U")
+        assert (
+            captured["url"] == "https://api.groq.com/openai/v1/chat/completions"
+        )  # one pipeline, not two
+    finally:
+        client.close()
+
+
 def test_compatible_provider_sends_optional_key() -> None:
     provider, client, captured = _multipart(
         "compatible", COMPATIBLE_BODY.encode(), "https://gate.example.test/v1", "gk-9"
@@ -263,6 +279,10 @@ def test_custom_base_url_allowed_for_mistral() -> None:
 def test_endpoint_rules() -> None:
     assert normalize_custom_endpoint("http://localhost:11434/v1") == "http://localhost:11434/v1"
     assert normalize_custom_endpoint(" http://127.0.0.1:8080/api ") == "http://127.0.0.1:8080/api"
+    assert (
+        normalize_custom_endpoint("https://api.groq.com/openai/v1/chat/completions")
+        == "https://api.groq.com/openai/v1"
+    )  # a pasted full-endpoint URL folds back to its base
     assert normalize_custom_endpoint("https://gate.example.test") == "https://gate.example.test"
     assert (
         normalize_custom_endpoint("https://10.1.2.3") == "https://10.1.2.3"

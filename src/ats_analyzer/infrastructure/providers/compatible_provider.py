@@ -44,6 +44,10 @@ def normalize_custom_endpoint(raw: str) -> str:
             "Insecure http:// is allowed only for local endpoints (localhost or a private IP). "
             "Use https:// for remote endpoints."
         )
+    # Users often paste a full completions URL from provider docs; fold the
+    # tail back to the base because this app re-appends the route itself.
+    if endpoint.lower().endswith("/chat/completions"):
+        endpoint = endpoint[: -len("/chat/completions")].rstrip("/")
     return endpoint
 
 
