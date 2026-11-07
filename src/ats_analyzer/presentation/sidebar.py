@@ -90,6 +90,14 @@ def _render_provider_inputs(state: SidebarState) -> None:
             "Base URL", key=f"base_url_{state.provider_id}", placeholder="http://localhost:11434/v1"
         )
         st.caption("HTTPS for remote endpoints; http:// only for localhost/private addresses.")
+    elif state.provider_id == "mistral":
+        st.text_input(
+            "Base URL (optional)", key="base_url_mistral", placeholder="https://api.mistral.ai/v1"
+        )
+        st.caption(
+            "Leave empty for the official Mistral API. HTTPS for remote endpoints; "
+            "http:// only for localhost/private addresses."
+        )
 
 
 def _render_connection_test(state: SidebarState) -> None:

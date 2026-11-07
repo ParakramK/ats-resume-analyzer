@@ -32,10 +32,13 @@ def validate_provider_config(config: ProviderConfig) -> ProviderConfig:
         config.api_key and config.api_key.get_secret_value()
     ):
         raise ConfigError(f"An API key is required for {PROVIDER_LABELS[config.provider_id]}.")
-    if config.provider_id != "compatible" and config.base_url:
+    _custom_base_url_providers = ("compatible", "mistral")
+    if config.provider_id not in _custom_base_url_providers and config.base_url:
         raise ConfigError("A custom base URL is supported only for OpenAI-compatible endpoints.")
     if config.provider_id == "compatible":
         normalize_custom_endpoint(config.base_url or "")
+    elif config.provider_id == "mistral" and config.base_url:
+        normalize_custom_endpoint(config.base_url)
     if config.timeout_seconds <= 0:
         raise ConfigError("The request timeout must be positive.")
     return config

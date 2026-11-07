@@ -40,7 +40,7 @@ In the sidebar, select **OpenAI-compatible endpoint**, set the base URL to `http
 | --- | --- | --- | --- |
 | OpenAI | Yes | OpenAI REST API | `gpt-5.6`, `gpt-5.4-mini` |
 | Google Gemini | Yes | Gemini REST API | `gemini-3.8-flash`, `gemini-3.1-pro-preview` |
-| Mistral AI | Yes | Mistral REST API | `mistral-small-2603`, `mistral-large-4` |
+| Mistral AI | Yes | Mistral REST API, or a custom base URL (HTTPS for remote) | `mistral-small-2603`, `mistral-large-4` |
 | OpenAI-compatible | No | Any `https://` URL, or `http://` on localhost/private IPs | depends on the service |
 | Local only (no AI) | — | none | — |
 

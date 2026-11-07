@@ -183,11 +183,25 @@ def test_missing_model_is_rejected() -> None:
 
 
 def test_custom_base_url_rejected_for_named_providers() -> None:
+    for provider_id in ("openai", "gemini"):
+        config = ProviderConfig(
+            provider_id=provider_id, model="m", api_key="k", base_url="https://x.test/v1"
+        )
+        with pytest.raises(ConfigError, match="OpenAI-compatible"):
+            validate_provider_config(config)
+
+
+def test_custom_base_url_allowed_for_mistral() -> None:
     config = ProviderConfig(
-        provider_id="openai", model="m", api_key="k", base_url="https://x.test/v1"
+        provider_id="mistral", model="m", api_key="k", base_url=" https://x.test/v1/ "
     )
-    with pytest.raises(ConfigError, match="OpenAI-compatible"):
-        validate_provider_config(config)
+    assert validate_provider_config(config) is config
+    with pytest.raises(ConfigError, match="Insecure http"):
+        validate_provider_config(
+            ProviderConfig(
+                provider_id="mistral", model="m", api_key="k", base_url="http://x.test/v1"
+            )
+        )
 
 
 def test_endpoint_rules() -> None:
