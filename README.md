@@ -39,12 +39,12 @@ In the sidebar, select **OpenAI-compatible endpoint**, set the base URL to `http
 | Provider | Key required | Endpoint | Suggested models |
 | --- | --- | --- | --- |
 | OpenAI | Yes | OpenAI REST API | `gpt-5.6`, `gpt-5.4-mini` |
-| Google Gemini | Yes | Gemini REST API | `gemini-3.8-flash`, `gemini-3.1-pro-preview` |
+| Google Gemini | Yes | Gemini REST API | `gemini-3.8-flash`, `gemini-3.5-flash-lite` |
 | Mistral AI | Yes | Mistral REST API, or a custom base URL (HTTPS for remote) | `mistral-small-2603`, `mistral-large-4` |
 | OpenAI-compatible | No | Any `https://` URL, or `http://` on localhost/private IPs | depends on the service |
 | Local only (no AI) | — | none | — |
 
-Model names are free-text; the suggestions in the UI are display-only.
+Model names are free-text; the suggestions in the UI are display-only. Prefer general-purpose chat models: reasoning-only models can answer with empty or thinking-only text and will not analyze.
 
 ## Scoring methodology
 

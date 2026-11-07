@@ -87,7 +87,11 @@ def _render_provider_inputs(state: SidebarState) -> None:
     suggestions = MODEL_SUGGESTIONS.get(state.provider_id, ())
     st.text_input("Model name", key=f"model_{state.provider_id}")
     if suggestions:
-        st.caption("Suggestions: " + ", ".join(suggestions))
+        st.caption(
+            "Suggestions: "
+            + ", ".join(suggestions)
+            + " — use a general chat model; reasoning-only ones may reply with empty text."
+        )
     if state.provider_id == "compatible":
         st.text_input(
             "Base URL", key=f"base_url_{state.provider_id}", placeholder="http://localhost:11434/v1"
