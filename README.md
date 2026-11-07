@@ -134,4 +134,4 @@ uv run pytest
 
 ## License
 
-Personal project. No license file yet; contact the author before redistribution.
+Released under the [MIT License](LICENSE).

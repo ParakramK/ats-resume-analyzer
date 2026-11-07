@@ -2,6 +2,8 @@
 name = "ats-resume-analyzer"
 version = "0.1.0"
 description = "Privacy-first, bring-your-own-key ATS resume analyzer: deterministic local scoring with optional AI feedback."
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
