@@ -49,10 +49,11 @@ class SidebarState:
         if self.is_local():
             return None
         api_key = st.session_state.get(f"key_{self.provider_id}") or None
+        raw_base_url = st.session_state.get(f"base_url_{self.provider_id}") or ""
         config = ProviderConfig(
             provider_id=self.provider_id,
             model=str(st.session_state.get(f"model_{self.provider_id}") or ""),
-            base_url=str(st.session_state.get(f"base_url_{self.provider_id}")) or None,
+            base_url=raw_base_url.strip() or None,
             api_key=api_key,
         )
         return config
