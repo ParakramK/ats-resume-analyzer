@@ -55,9 +55,9 @@ PROVIDER_LABELS: dict[str, str] = {
 PROVIDER_REQUIRES_KEY = {"openai": True, "gemini": True, "mistral": True, "compatible": False}
 
 MODEL_SUGGESTIONS: dict[str, tuple[str, ...]] = {
-    "openai": ("gpt-4o-mini", "gpt-4.1-mini", "o4-mini"),
-    "gemini": ("gemini-2.0-flash", "gemini-2.5-flash"),
-    "mistral": ("mistral-small-latest", "mistral-large-latest"),
+    "openai": ("gpt-5.6", "gpt-5.4-mini", "gpt-5.4-nano"),
+    "gemini": ("gemini-3.8-flash", "gemini-3.1-pro-preview"),
+    "mistral": ("mistral-small-2603", "mistral-large-4"),
     "compatible": (),
 }
 
