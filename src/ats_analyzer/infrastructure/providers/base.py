@@ -55,12 +55,28 @@ class BaseRestProvider:
 
 
 def openai_chat_text(data: dict[str, Any]) -> str:
-    """Extract the assistant text from an OpenAI- dialect chat completion body."""
+    """Extract the assistant text from an OpenAI-dialect chat completion body.
+
+    Text may be empty: the connection probe treats any delivered completion as
+    success, and the chain layer raises its own clearer error when text is
+    required for analysis.
+    """
     choices = data.get("choices") or []
     if not choices or not isinstance(choices[0], dict):
         raise ProviderError("The provider returned no completions.")
-    message = choices[0].get("message") or {}
+    message = choices[0].get("message")
+    if not isinstance(message, dict):
+        raise ProviderError("The provider returned no completions.")
     content = message.get("content")
-    if not isinstance(content, str) or not content.strip():
-        raise ProviderError("The provider returned an empty completion.")
-    return content
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):  # multi-part content in the modern dialect
+        return "".join(
+            part.get("text", "")
+            for part in content
+            if isinstance(part, dict) and isinstance(part.get("text"), str)
+        )
+    reasoning = message.get("reasoning_content")  # gateways that hide text there
+    if isinstance(reasoning, str):
+        return reasoning
+    return ""

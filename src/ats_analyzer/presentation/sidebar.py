@@ -13,6 +13,8 @@ import streamlit as st
 
 from ats_analyzer.application.analyzer_service import run_connection_test
 from ats_analyzer.config import (
+    CONNECTION_PROBE_MAX_RETRIES,
+    CONNECTION_PROBE_TIMEOUT_SECONDS,
     MODEL_SUGGESTIONS,
     PRIVACY_NOTICE,
     PROVIDER_LABELS,
@@ -106,9 +108,13 @@ def _render_connection_test(state: SidebarState) -> None:
         try:
             config = state.build_config()
             assert config is not None  # local mode never reaches here
-            with HttpJsonClient(timeout_seconds=config.timeout_seconds) as client:
+            probe_timeout = min(config.timeout_seconds, CONNECTION_PROBE_TIMEOUT_SECONDS)
+            with HttpJsonClient(
+                timeout_seconds=probe_timeout, max_retries=CONNECTION_PROBE_MAX_RETRIES
+            ) as client:
                 provider = create_provider(config, http=client)
-                st.success(run_connection_test(provider))
+                with st.spinner("Testing connection…"):
+                    st.success(run_connection_test(provider))
         except AtsAnalyzerError as exc:
             st.error(str(exc))
 

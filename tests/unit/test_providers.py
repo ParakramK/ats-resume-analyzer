@@ -6,6 +6,8 @@ All traffic goes through httpx.MockTransport — no network, no real keys.
 
 from __future__ import annotations
 
+import json
+
 import httpx
 import pytest
 
@@ -163,6 +165,48 @@ def test_openai_empty_choices_is_normalized() -> None:
     try:
         with pytest.raises(ProviderError, match="no completions"):
             provider.generate("S", "U")
+    finally:
+        client.close()
+
+
+def test_openai_empty_content_is_tolerated() -> None:
+    provider, client = _stub("openai", b'{"choices": [{"message": {"content": ""}}]}')
+    try:
+        assert provider.generate("S", "U") == ""
+    finally:
+        client.close()
+
+
+def test_openai_multipart_content_is_joined() -> None:
+    body = json.dumps(
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": [
+                            {"type": "text", "text": "Hello "},
+                            {"type": "text", "text": "world"},
+                            {"type": "image_url"},
+                        ]
+                    }
+                }
+            ]
+        }
+    ).encode()
+    provider, client = _stub("openai", body)
+    try:
+        assert provider.generate("S", "U") == "Hello world"
+    finally:
+        client.close()
+
+
+def test_openai_reasoning_content_fallback() -> None:
+    body = json.dumps(
+        {"choices": [{"message": {"content": None, "reasoning_content": "just thinking"}}]}
+    ).encode()
+    provider, client = _stub("openai", body)
+    try:
+        assert provider.generate("S", "U") == "just thinking"
     finally:
         client.close()
 

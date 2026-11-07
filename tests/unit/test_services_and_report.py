@@ -107,6 +107,13 @@ def test_connection_probe_sends_no_resume_content() -> None:
     assert provider.calls == 1  # exactly one fixed-sentence probe, no document content
 
 
+def test_connection_probe_reports_unexpected_reply_but_connected() -> None:
+    provider = FakeProvider("")  # empty completion still proves connectivity
+    message = run_connection_test(provider)
+    assert "Connected" in message and "unexpected" in message
+    assert provider.calls == 1
+
+
 def test_chain_buildable_against_fake_provider() -> None:
     provider = FakeProvider(json.dumps({"assessment": "x"}))
     chain = build_analysis_chain(provider)

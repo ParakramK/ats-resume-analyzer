@@ -37,6 +37,10 @@ def _env_int(name: str, default: int) -> int:
 
 DEFAULT_TIMEOUT_SECONDS = _env_float("ATS_HTTP_TIMEOUT", 30.0)
 MAX_RETRIES = max(0, _env_int("ATS_HTTP_MAX_RETRIES", 2))  # 429/5xx/transient only
+
+# The connection probe should answer quickly or report failure; it never retries.
+CONNECTION_PROBE_TIMEOUT_SECONDS = 10.0
+CONNECTION_PROBE_MAX_RETRIES = 0
 MAX_RESPONSE_BYTES = max(1024, _env_int("ATS_HTTP_MAX_RESPONSE_BYTES", 2_000_000))
 
 # --- AI provider catalog ---------------------------------------------------
