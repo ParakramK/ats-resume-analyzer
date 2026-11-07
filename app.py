@@ -45,6 +45,19 @@ logger.info("app_start")
 sidebar_state = render_sidebar()
 
 
+def _review_seed(version: int, requirements: JobRequirements) -> dict[str, object]:
+    """Form widget values showing the current requirements (joined back to lines)."""
+    return {
+        f"review_title_{version}": requirements.title,
+        f"review_required_{version}": "\n".join(requirements.required_skills),
+        f"review_preferred_{version}": "\n".join(requirements.preferred_skills),
+        f"review_keywords_{version}": "\n".join(requirements.keywords),
+        f"review_education_{version}": "\n".join(requirements.education),
+        f"review_certifications_{version}": "\n".join(requirements.certifications),
+        f"review_years_{version}": int(requirements.min_years_experience or 0),
+    }
+
+
 def _resume() -> ParsedResume | None:
     resume = st.session_state.get("resume")
     return resume if isinstance(resume, ParsedResume) else None
@@ -176,6 +189,8 @@ with tab_review:
         st.info("Paste a job description first (tab 2).")
     if requirements is not None:
         version = st.session_state.get("requirements_version", 0)
+        if f"review_title_{version}" not in st.session_state:
+            st.session_state.update(_review_seed(version, requirements))
         with st.form("requirements_form", border=True):
             st.text_input("Job title", key=f"review_title_{version}")
             st.text_area(
