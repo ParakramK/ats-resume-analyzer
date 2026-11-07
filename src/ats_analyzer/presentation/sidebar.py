@@ -7,6 +7,7 @@ on an explicit button click.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 import streamlit as st
@@ -23,6 +24,8 @@ from ats_analyzer.domain.exceptions import AtsAnalyzerError
 from ats_analyzer.domain.models import ProviderConfig
 from ats_analyzer.infrastructure.http_client import HttpJsonClient
 from ats_analyzer.infrastructure.providers.factory import create_provider
+
+_logger = logging.getLogger(__name__)
 
 _SESSION_KEYS_TO_CLEAR = (
     "resume",
@@ -118,8 +121,16 @@ def _render_connection_test(state: SidebarState) -> None:
             ) as client:
                 provider = create_provider(config, http=client)
                 with st.spinner("Testing connection…"):
-                    st.success(run_connection_test(provider))
+                    result = run_connection_test(provider)
+            _logger.info("probe outcome=ok provider=%s model=%s", config.provider_id, config.model)
+            st.success(result)
         except AtsAnalyzerError as exc:
+            _logger.warning(
+                "probe outcome=failed provider=%s model=%s reason=%r",
+                state.provider_id,
+                state.build_config().model if state.build_config() else "",
+                exc,
+            )
             st.error(str(exc))
 
 

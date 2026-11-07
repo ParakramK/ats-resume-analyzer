@@ -12,6 +12,8 @@ Privacy boundaries enforced here:
 
 from __future__ import annotations
 
+import logging
+
 import streamlit as st
 
 from ats_analyzer.application.analyzer_service import (
@@ -28,12 +30,17 @@ from ats_analyzer.domain.models import JobRequirements, ParsedResume, ProviderCo
 from ats_analyzer.infrastructure.http_client import HttpJsonClient
 from ats_analyzer.infrastructure.parsers import parse_resume
 from ats_analyzer.infrastructure.providers.factory import create_provider
+from ats_analyzer.logging_setup import configure_logging
 from ats_analyzer.presentation.dashboard import render_report
 from ats_analyzer.presentation.sidebar import render_sidebar
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 st.set_page_config(page_title=APP_NAME, page_icon=LOGO_EMOJI, layout="wide")
 st.title(f"{LOGO_EMOJI} {APP_NAME}")
 st.caption("Privacy-first, bring-your-own-key. Local scoring runs entirely offline; AI is opt-in.")
+logger.info("app_start")
 
 sidebar_state = render_sidebar()
 
@@ -92,6 +99,13 @@ with tab_upload:
             try:
                 resume = parse_resume(upload.name, data)
                 st.session_state["resume"] = resume
+                logger.info(
+                    "upload type=%s size=%d pages=%d words=%d",
+                    resume.file_format,
+                    len(data),
+                    resume.pages,
+                    resume.word_count,
+                )
                 contacts = ", ".join([*resume.emails, *resume.phones[:1]]) or "no contacts detected"
                 st.success(
                     f"Parsed {resume.word_count} words · {resume.pages} page(s) · {contacts}"
@@ -115,7 +129,14 @@ with tab_jd:
         placeholder="Paste the posting here…",
     )
     if jd_text.strip():
-        st.session_state["requirements"] = extract_job_requirements(jd_text)
+        requirements = extract_job_requirements(jd_text)
+        st.session_state["requirements"] = requirements
+        logger.info(
+            "jd_extracted required=%d preferred=%d keywords=%d",
+            len(requirements.required_skills),
+            len(requirements.preferred_skills),
+            len(requirements.keywords),
+        )
         st.success("Local extraction ready — review and edit it in the next tab.")
     elif isinstance(st.session_state.get("requirements"), JobRequirements):
         st.session_state.pop("requirements", None)
@@ -126,8 +147,15 @@ with tab_jd:
             config = sidebar_state.build_config()
             assert isinstance(config, ProviderConfig)
             provider, client = _ai_provider(config)
-            with client:
+            with client, st.spinner(f"Asking {provider.describe()} to extract requirements…"):
                 ai_requirements = extract_requirements_with_ai(provider, jd_text)
+            logger.info(
+                "ai_extract provider=%s model=%s title=%r required=%d",
+                config.provider_id,
+                config.model,
+                ai_requirements.title[:60],
+                len(ai_requirements.required_skills),
+            )
             st.session_state["requirements"] = ai_requirements
             bumped = st.session_state.get("requirements_version", 0) + 1
             st.session_state["requirements_version"] = bumped
@@ -206,6 +234,7 @@ with tab_analyze:
                 local_ats = run_local_analysis(resume, requirements)
                 recs = local_recommendations(resume, requirements, local_ats)
                 _save_results(local_ats, recs)
+            logger.info("local_analysis overall=%.1f", local_ats.overall)
             st.success("Done — open the Results tab.")
 
         st.divider()
@@ -231,6 +260,12 @@ with tab_analyze:
                         ai_ats, ai_feedback = run_ai_analysis(provider, resume, requirements)
                     recs = local_recommendations(resume, requirements, ai_ats)
                     _save_results(ai_ats, recs, ai_feedback, provider.describe(), config.model)
+                    logger.info(
+                        "ai_analysis provider=%s model=%s overall=%.1f",
+                        config.provider_id,
+                        config.model,
+                        ai_ats.overall,
+                    )
                 except AtsAnalyzerError as exc:
                     st.error(str(exc))
                 else:

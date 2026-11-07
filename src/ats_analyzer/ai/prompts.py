@@ -10,6 +10,7 @@ ChatPromptTemplate f-strings.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from importlib.resources import files
 from typing import Any
@@ -17,6 +18,8 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from ats_analyzer.domain.exceptions import AIOutputError
+
+_logger = logging.getLogger(__name__)
 
 _PromptCache: dict[str, str] = {}
 
@@ -74,23 +77,28 @@ def extract_json_object(raw_message: Any) -> dict[str, Any]:
     """
     text = getattr(raw_message, "content", raw_message)
     if not isinstance(text, str):
+        _logger.warning("ai_output kind=wrong_type")
         raise AIOutputError("The AI returned an unexpected output type.")
     if not text.strip():
+        _logger.warning("ai_output kind=empty")
         raise AIOutputError("The AI returned an empty response.")
     fenced = _FENCE_RE.search(text)
     candidate = fenced.group(1) if fenced else text
     start, end = candidate.find("{"), candidate.rfind("}")
     if start == -1 or end == -1 or end <= start:
+        _logger.warning("ai_output kind=no_json_object chars=%d", len(text))
         raise AIOutputError(
             "The AI response did not contain a JSON object. Try running the analysis again."
         )
     try:
         parsed = json.loads(candidate[start : end + 1])
     except json.JSONDecodeError:
+        _logger.warning("ai_output kind=invalid_json chars=%d", len(text))
         raise AIOutputError(
             "The AI response was not valid JSON. Try running the analysis again."
         ) from None
     if not isinstance(parsed, dict):
+        _logger.warning("ai_output kind=not_object")
         raise AIOutputError(
             "The AI response was not a JSON object. Try running the analysis again."
         )

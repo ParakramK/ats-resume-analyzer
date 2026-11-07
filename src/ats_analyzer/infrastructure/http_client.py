@@ -106,16 +106,19 @@ class HttpJsonClient:
         """POST ``payload`` and return the parsed JSON object response."""
         host = urlsplit(url).hostname or "unknown"
         for attempt in range(self._max_retries + 1):
+            self._request_started = time.perf_counter()
             try:
                 with self._client.stream("POST", url, headers=headers, json=payload) as response:
                     if response.status_code in _RETRYABLE_STATUSES and attempt < self._max_retries:
+                        delay = self._backoff(attempt, response.headers.get("retry-after"))
                         _logger.info(
-                            "http_retryable host=%s status=%s attempt=%d",
+                            "http_retryable host=%s status=%s attempt=%d next_ms=%.0f",
                             host,
                             response.status_code,
                             attempt + 1,
+                            delay * 1000,
                         )
-                        self._sleep(self._backoff(attempt, response.headers.get("retry-after")))
+                        self._sleep(delay)
                         continue
                     return self._consume(host, response)
             except httpx.TimeoutException:
@@ -123,10 +126,12 @@ class HttpJsonClient:
                     "The request to the AI provider timed out. Try again or pick a smaller model."
                 )
                 if attempt >= self._max_retries:
+                    _logger.warning("http_failed host=%s kind=timeout", host)
                     raise HTTPClientError(message) from None
                 self._sleep(self._backoff(attempt, None))
             except httpx.RequestError:
                 if attempt >= self._max_retries:
+                    _logger.warning("http_failed host=%s kind=transport", host)
                     raise HTTPClientError(
                         "The connection to the AI provider failed. Check network connectivity."
                     ) from None
@@ -135,7 +140,6 @@ class HttpJsonClient:
 
     def _consume(self, host: str, response: httpx.Response) -> dict[str, Any]:
         status = response.status_code
-        _logger.info("http_request host=%s status=%s", host, status)
         if status in _RETRYABLE_STATUSES:  # attempts exhausted, decided by caller
             raise HTTPClientError(_status_message(status), status=status)
         if 300 <= status < 400:
@@ -151,8 +155,16 @@ class HttpJsonClient:
         for chunk in response.iter_bytes():
             total += len(chunk)
             if total > self._max_response_bytes:
+                _logger.warning("http_failed host=%s kind=oversize bytes=%d", host, total)
                 raise HTTPClientError("The AI provider response was too large and was rejected.")
             chunks.append(chunk)
+        _logger.info(
+            "http_response host=%s status=%s bytes=%d ms=%.0f",
+            host,
+            status,
+            total,
+            (time.perf_counter() - self._request_started) * 1000,
+        )
         try:
             parsed: Any = json.loads(b"".join(chunks) or b"null")
         except (json.JSONDecodeError, UnicodeDecodeError):

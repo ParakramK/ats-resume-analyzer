@@ -125,6 +125,15 @@ uv run pytest
 - Pre-commit hooks (ruff lint and format): `uvx pre-commit install`.
 - Continuous integration runs ruff, mypy, and pytest on push and pull requests.
 
+### Logging
+
+Logs are metadata-only by design: hosts, model names, status codes, durations, file type and size. They never contain API keys, resume or job description text, parsed contact details, or AI replies. Output goes to the console with two controls:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ATS_LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, or `WARNING` |
+| `ATS_LOG_FILE` | unset | Write a rotating log file (3 × 1 MB) for debugging long sessions |
+
 ## Known limitations
 
 - No OCR. A scanned or image-only resume is detected and rejected with an explanatory message instead of being transcoded.

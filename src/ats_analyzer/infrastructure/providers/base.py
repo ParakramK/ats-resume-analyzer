@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from typing import Any
+from urllib.parse import urlsplit
 
 from ats_analyzer.domain.exceptions import ProviderError
 from ats_analyzer.domain.models import ProviderConfig
 from ats_analyzer.infrastructure.http_client import HttpJsonClient
+
+_logger = logging.getLogger(__name__)
 
 
 class BaseRestProvider:
@@ -44,6 +48,11 @@ class BaseRestProvider:
         self.close()
 
     def post(self, url: str, headers: Mapping[str, str], payload: dict[str, Any]) -> dict[str, Any]:
+        parsed = urlsplit(url)
+        # Model/host/path only — never headers or payload (both hold secrets/content).
+        _logger.info(
+            "rest_post model=%s host=%s path=%s", self._config.model, parsed.hostname, parsed.path
+        )
         return self._http.post_json(url, headers=dict(headers), payload=payload)
 
     # Declared to satisfy the AIProvider protocol contract for all subclasses.
