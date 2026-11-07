@@ -26,7 +26,10 @@ _PROVIDERS: dict[str, type[BaseRestProvider]] = {
 
 def validate_provider_config(config: ProviderConfig) -> ProviderConfig:
     """Validate provider configuration; error messages never echo secret values."""
-    if not config.model.strip():
+    # Normalize pasted model names: "a, b" from copying suggestion lists, stray
+    # whitespace, wrapping quotes — treat the first token as the intended pick.
+    config.model = config.model.strip().strip("\"'`").split(",", 1)[0].strip().strip("\"'`")
+    if not config.model:
         raise ConfigError(f"A model name is required for {PROVIDER_LABELS[config.provider_id]}.")
     if PROVIDER_REQUIRES_KEY.get(config.provider_id) and not (
         config.api_key and config.api_key.get_secret_value()

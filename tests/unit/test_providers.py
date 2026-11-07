@@ -214,6 +214,18 @@ def test_openai_reasoning_content_fallback() -> None:
 # --- configuration validation --------------------------------------------------
 
 
+def test_pasted_model_names_are_normalized_at_validation_gate() -> None:
+    for raw, expected in (
+        ("mistral-small-2603,", "mistral-small-2603"),
+        ("mistral-small-2603, mistral-large-4", "mistral-small-2603"),
+        (" mistral-small-2603 ", "mistral-small-2603"),
+        ('"mistral-small-2603"', "mistral-small-2603"),
+    ):
+        config = ProviderConfig(provider_id="mistral", api_key="k", model=raw)
+        validate_provider_config(config)
+        assert config.model == expected
+
+
 def test_missing_key_is_rejected() -> None:
     config = ProviderConfig(provider_id="openai", model="m")
     with pytest.raises(ConfigError, match="API key is required"):
