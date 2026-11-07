@@ -34,6 +34,8 @@ ollama pull llama3.1
 
 In the sidebar, select **OpenAI-compatible endpoint**, set the base URL to `http://localhost:11434/v1`, set the model to `llama3.1`, and leave the key empty.
 
+Hosted gateways work the same way. For [Groq](https://console.groq.com), use the base URL `https://api.groq.com/openai/v1` (or the full `/chat/completions` URL from their docs — a pasted route tail is folded back automatically) with a model such as `llama-3.3-70b-versatile` or `gpt-oss-20b`.
+
 ## Supported AI providers
 
 | Provider | Key required | Endpoint | Suggested models |
